@@ -83,6 +83,7 @@ if(GPU)
   target_link_libraries(${project_name} PUBLIC CUDA::cublas CUDA::cusolver CUDA::cusparse
          CUDA::cudart)
   elseif(${GPU_RUNTIME} MATCHES HIP)
+    target_compile_definitions(${project_name} PUBLIC HAVE_HIP)
   target_link_libraries(${project_name} PUBLIC
       hip::host
       roc::hipblas

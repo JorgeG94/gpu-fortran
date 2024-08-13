@@ -12,8 +12,11 @@ interface
             type(c_ptr),value :: tot
         end function cudaMemGetInfo
 #elif HAVE_HIP
-    integer(c_int) function hipMemGetInfo(free, total) bind(C, name="hipMemGetInfo")
-      type(c_ptr), value :: free, total
+    integer(c_int) function hipMemGetInfo(fre, tot) bind(C, name="hipMemGetInfo")
+            use iso_c_binding
+            implicit none
+            type(c_ptr),value :: fre
+            type(c_ptr),value :: tot
     end function hipMemGetInfo
 #endif
 end interface
