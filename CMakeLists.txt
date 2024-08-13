@@ -31,33 +31,33 @@ endif()
 if(USE_GPU)
   # set the variable we'll use ON, make sure to turn MPI and OpenMP ON
   set(GPU ON)
-  set(GPU_RUNTIMES "CUDA" "HIP")
+  set(GPU_MODELS "CUDA" "HIP")
   # iterate through the list to see if we have a valid GPU runtime
-  if(DEFINED GPU_RUNTIME)
-    if("${GPU_RUNTIME}" IN_LIST GPU_RUNTIMES)
-      message(STATUS "GPU_RUNTIME set to \"${GPU_RUNTIME}\"!")
+  if(DEFINED GPU_MODEL)
+    if("${GPU_MODEL}" IN_LIST GPU_MODELS)
+      message(STATUS "GPU_MODEL set to \"${GPU_MODEL}\"!")
     else()
       set(FATAL_ERROR
-          "GPU_RUNTIME is set to ${GPU_RUNTIME} \nValid options are HIP, CUDA, INTEL"
+          "GPU_MODEL is set to ${GPU_MODEL} \nValid options are HIP, CUDA, INTEL"
       )
     endif()
   else()
-    set(GPU_RUNTIME "CUDA")
-    message(WARNING "Setting GPU_RUNTIME to CUDA by default!")
+    set(GPU_MODEL "CUDA")
+    message(WARNING "Setting GPU_MODEL to CUDA by default!")
   endif()
   # enable the language for gpus
-  enable_language(${GPU_RUNTIME})
+  enable_language(${GPU_MODEL})
 else()
   message(STATUS "${project_name} built with pure CPU support!")
   set(GPU OFF)
 endif()
 
 if(GPU)
-  if(${GPU_RUNTIME} MATCHES "CUDA")
+  if(${GPU_MODEL} MATCHES "CUDA")
     # do not try to change this to find_package(CUDA) this is deprecated in
     # cmake
     find_package(CUDAToolkit REQUIRED)
-  elseif(${GPU_RUNTIME} MATCHES "HIP")
+  elseif(${GPU_MODEL} MATCHES "HIP")
     #target_compile_definitions(${project_name} PUBLIC HAVE_HIP)
     # for some reason we need all of this crap TODO: figure out how much crap we
     # actually need O.o
@@ -78,11 +78,11 @@ add_executable(${project_name} main.f90 device_mem_info_module.F90)
 #) 
 # Add the executable target based on main.f90
 if(GPU)
-  if(${GPU_RUNTIME} MATCHES CUDA)
+  if(${GPU_MODEL} MATCHES CUDA)
     target_compile_definitions(${project_name} PUBLIC HAVE_CUDA)
   target_link_libraries(${project_name} PUBLIC CUDA::cublas CUDA::cusolver CUDA::cusparse
          CUDA::cudart)
-  elseif(${GPU_RUNTIME} MATCHES HIP)
+  elseif(${GPU_MODEL} MATCHES HIP)
     target_compile_definitions(${project_name} PUBLIC HAVE_HIP)
   target_link_libraries(${project_name} PUBLIC
       hip::host
