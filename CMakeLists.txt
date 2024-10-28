@@ -12,14 +12,15 @@ cmake_policy(SET CMP0048 NEW)
 # Name your project
 set(project_name frank)
 
-project({project_name} VERSION 0.0.1)
+project({project_name} VERSION 0.0.1 LANGUAGES C CXX Fortran)
+enable_language(C CXX)
 enable_language(Fortran)
-set(CMAKE_Fortran_STANDARD 2008)
-set(FVERSION "-cpp")
+#set(CMAKE_Fortran_STANDARD 2008)
+#set(FVERSION "-cpp")
 #set(FLAGS1 "-Wall -Wextra -Wpedantic")
 # set(WERROR "-Werror")
-set(CMAKE_Fortran_FLAGS
-    "${CMAKE_Fortran_FLAGS} ${FVERSION} ${FLAGS1} ${WERROR}")
+#set(CMAKE_Fortran_FLAGS
+#    "${CMAKE_Fortran_FLAGS} ${FVERSION} ${FLAGS1} ${WERROR}")
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
 
 # Set default install prefix to the project source directory
@@ -36,7 +37,7 @@ if(USE_GPU)
   if(DEFINED GPU_RUNTIME)
     if("${GPU_RUNTIME}" IN_LIST GPU_RUNTIMES)
       message(STATUS "GPU_RUNTIME set to \"${GPU_RUNTIME}\"!")
-    else()
+   else()
       set(FATAL_ERROR
           "GPU_RUNTIME is set to ${GPU_RUNTIME} \nValid options are HIP, CUDA, INTEL"
       )
@@ -52,6 +53,10 @@ else()
   set(GPU OFF)
 endif()
 
+find_package(OpenMP REQUIRED)
+find_package(MPI REQUIRED)
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
 if(GPU)
   if(${GPU_RUNTIME} MATCHES "CUDA")
     # do not try to change this to find_package(CUDA) this is deprecated in
@@ -61,13 +66,14 @@ if(GPU)
     #target_compile_definitions(${project_name} PUBLIC HAVE_HIP)
     # for some reason we need all of this crap TODO: figure out how much crap we
     # actually need O.o
-    find_package(HIP REQUIRED)
-    find_package(hipBLAS REQUIRED)
-    find_package(hipSPARSE REQUIRED)
-    find_package(hipSOLVER REQUIRED)
-    find_package(rocBLAS REQUIRED)
-    find_package(rocSPARSE REQUIRED)
-    find_package(rocSOLVER REQUIRED)
+    find_package(hipfort REQUIRED COMPONENTS hip rocblas rocsparse)
+    #find_package(HIP REQUIRED)
+    #find_package(hipBLAS REQUIRED)
+    #find_package(hipSPARSE REQUIRED)
+    #find_package(hipSOLVER REQUIRED)
+    #find_package(rocBLAS REQUIRED)
+    #find_package(rocSPARSE REQUIRED)
+    #find_package(rocSOLVER REQUIRED)
   endif()
 endif()
 
@@ -85,14 +91,20 @@ if(GPU)
   elseif(${GPU_RUNTIME} MATCHES HIP)
     target_compile_definitions(${project_name} PUBLIC HAVE_HIP)
   target_link_libraries(${project_name} PUBLIC
-      hip::host
-      roc::hipblas
-      roc::hipsparse
-      roc::hipsolver
-      roc::rocblas
-      roc::rocsparse
-      roc::rocsolver)
+  OpenMP::OpenMP_Fortran
+  MPI::MPI_Fortran
+  BLAS::BLAS
+  LAPACK::LAPACK
+      hipfort::rocblas hipfort::rocsparse hipfort::hip
+      )
   endif()
+else()
+target_link_libraries(${project_name} PUBLIC
+  OpenMP::OpenMP_Fortran
+  MPI::MPI_Fortran
+  BLAS::BLAS
+  LAPACK::LAPACK
+  )
 endif()
     #target_link_options(
     #  ${project_name}

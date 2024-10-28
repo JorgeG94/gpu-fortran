@@ -1,6 +1,7 @@
 
 program main
 use device_mem_info_module
+use hipfort
   use iso_c_binding
   implicit none
       type(c_ptr) :: cpfree, cptot
